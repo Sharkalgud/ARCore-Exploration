@@ -39,9 +39,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        //Get ARFragment that is being used
         setContentView(R.layout.activity_main);
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
+        //Create renderable objects, in this case just the Android logo
         ModelRenderable.builder()
                 .setSource(this, R.raw.andy)
                 .build()
@@ -55,12 +57,14 @@ public class MainActivity extends AppCompatActivity {
                             return null;
                         });
 
+        //The Texture Sampler applies the texture repeatadly to the detected planes
         Texture.Sampler sampler =
                 Texture.Sampler.builder()
                         .setMinFilter(Texture.Sampler.MinFilter.LINEAR)
                         .setWrapMode(Texture.Sampler.WrapMode.REPEAT)
                         .build();
 
+        //This sets up the texture which right now is a fractal png but can be replaced by anything you want
         Texture.builder()
                 .setSource(this, R.drawable.fractal)
                 .setSampler(sampler)
@@ -71,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
                             material.setTexture(PlaneRenderer.MATERIAL_TEXTURE, texture));
                 });
 
+        //Listener to take action when a user taps the screen
+        //It does something called a hit test to see if your touch connects to a detected plane
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
 
@@ -80,12 +86,7 @@ public class MainActivity extends AppCompatActivity {
 
             Pose hitPose = hitResult.getHitPose();
             float[] hitTranslation = hitPose.getTranslation();
-            String hitTranslationString = "[" + hitTranslation[0] + ", " + hitTranslation[1] + ", " + hitTranslation[2] + "]";
             float[] hitRotation =  hitPose.getRotationQuaternion();
-            String hitRotationString = "[" + hitRotation[0] + ", " + hitRotation[1] + ", " + hitRotation[2] + ", "
-                    + hitRotation[3] +"]";
-            Toast.makeText(this, "Translation: " + hitTranslationString +
-                    " \nRotation: " + hitRotationString, Toast.LENGTH_LONG).show();
 
             Pose compositePose = new Pose(hitTranslation, hitRotation);
 
