@@ -14,8 +14,11 @@ import android.widget.Toast;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
+import com.google.ar.core.Pose;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.PlaneRenderer;
+import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
@@ -52,6 +55,22 @@ public class MainActivity extends AppCompatActivity {
                             return null;
                         });
 
+        Texture.Sampler sampler =
+                Texture.Sampler.builder()
+                        .setMinFilter(Texture.Sampler.MinFilter.LINEAR)
+                        .setWrapMode(Texture.Sampler.WrapMode.REPEAT)
+                        .build();
+
+        Texture.builder()
+                .setSource(this, R.drawable.fractal)
+                .setSampler(sampler)
+                .build()
+                .thenAccept(texture -> {
+                    arFragment.getArSceneView().getPlaneRenderer()
+                            .getMaterial().thenAccept(material ->
+                            material.setTexture(PlaneRenderer.MATERIAL_TEXTURE, texture));
+                });
+
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
 
@@ -59,7 +78,18 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            Anchor anchor = hitResult.createAnchor();
+            Pose hitPose = hitResult.getHitPose();
+            float[] hitTranslation = hitPose.getTranslation();
+            String hitTranslationString = "[" + hitTranslation[0] + ", " + hitTranslation[1] + ", " + hitTranslation[2] + "]";
+            float[] hitRotation =  hitPose.getRotationQuaternion();
+            String hitRotationString = "[" + hitRotation[0] + ", " + hitRotation[1] + ", " + hitRotation[2] + ", "
+                    + hitRotation[3] +"]";
+            Toast.makeText(this, "Translation: " + hitTranslationString +
+                    " \nRotation: " + hitRotationString, Toast.LENGTH_LONG).show();
+
+            Pose compositePose = new Pose(hitTranslation, hitRotation);
+
+            Anchor anchor = hitResult.getTrackable().createAnchor(compositePose);
             AnchorNode anchorNode = new AnchorNode(anchor);
             anchorNode.setParent(arFragment.getArSceneView().getScene());
 
