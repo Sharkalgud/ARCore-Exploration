@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
         //addTextureToDetectedPlanes();
 
-        renderFeaturePoints();
+        //renderFeaturePoints();
 
         //Listener to take action when a user taps the screen
         //It does something called a hit test to see if your touch connects to a detected plane
