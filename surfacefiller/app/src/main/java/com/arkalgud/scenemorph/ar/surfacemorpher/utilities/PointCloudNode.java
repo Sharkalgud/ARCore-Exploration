@@ -169,6 +169,7 @@ public class PointCloudNode extends Node {
                 indexbuffer[featureBase + 11] = vertexBase + 3;
 
             }
+
             RenderableDefinition.Submesh submesh =
                     RenderableDefinition.Submesh.builder()
                     .setName("pointcloud")
