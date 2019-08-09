@@ -58,10 +58,10 @@ public class MainActivity extends AppCompatActivity {
 
         //addTextureToDetectedPlanes();
 
-        //renderFeaturePoints();
+        renderFeaturePoints();
 
         //Listener to take action when a user taps the screen
-        //It does something called a hit test to see if your touch connects to a detected plane
+        //It calls a hit test to see if your touch connects to a detected plane
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
 
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     private void renderFeaturePoints(){
 
         Scene scene = arFragment.getArSceneView().getScene();
-        //scene.setOnUpdateListener(this::onFrame);
+        scene.addOnUpdateListener(this::onFrame);
         pointCloudNode = new PointCloudNode(this);
         scene.addChild(pointCloudNode);
     }
@@ -157,16 +157,6 @@ public class MainActivity extends AppCompatActivity {
         Frame frame = arFragment.getArSceneView().getArFrame();
 
         if (frame == null) {
-            return;
-        }
-
-        Camera camera = frame.getCamera();
-        Collection<Anchor> updatedAnchors = frame.getUpdatedAnchors();
-        TrackingState cameraTrackingState = camera.getTrackingState();
-
-
-        // If not tracking, don't draw 3d objects.
-        if (cameraTrackingState == TrackingState.PAUSED) {
             return;
         }
 
