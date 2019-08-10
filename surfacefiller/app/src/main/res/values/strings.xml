@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SurfaceMorpher</string>
+    <string name="featurepts_btn_txt">Show Feature Points</string>
+    <string name="fillsurface_btn_txt">Fill Surface With Texture</string>
 </resources>

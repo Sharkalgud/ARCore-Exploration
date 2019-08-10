@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.arkalgud.scenemorph.ar.surfacemorpher.utilities.PointCloudNode;
@@ -21,8 +23,10 @@ import com.google.ar.core.PointCloud;
 import com.google.ar.core.Pose;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.SceneView;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.PlaneRenderer;
 import com.google.ar.sceneform.rendering.Texture;
@@ -37,52 +41,44 @@ public class MainActivity extends AppCompatActivity {
     private static final double MIN_OPENGL_VERSION = 3.0;
 
     private ArFragment arFragment;
-    private ModelRenderable andyRenderable;
     private PointCloudNode pointCloudNode;
+    private Boolean showSurfaceFiller;
+    private Boolean showFeaturePoints;
 
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        showSurfaceFiller = true;
+        showFeaturePoints = false;
 
         if(!checkIsSupportedDeviceOrFinish(this)){
             return;
         }
-
-        //Get ARFragment that is being used
         setContentView(R.layout.activity_main);
 
+        //Get ARFragment that is being used
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
-        buildRenderableObject();
+        addTextureToDetectedPlanes();
 
-        //addTextureToDetectedPlanes();
+        Button button = findViewById(R.id.button);
 
-        renderFeaturePoints();
-
-        //Listener to take action when a user taps the screen
-        //It calls a hit test to see if your touch connects to a detected plane
-        arFragment.setOnTapArPlaneListener(
-                (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-
-            if (andyRenderable == null) {
-                return;
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(showSurfaceFiller){
+                    renderFeaturePoints();
+                    button.setText(R.string.fillsurface_btn_txt);
+                    showSurfaceFiller = false;
+                    showFeaturePoints = true;
+                } else {
+                    addTextureToDetectedPlanes();
+                    button.setText(R.string.featurepts_btn_txt);
+                    showSurfaceFiller = true;
+                    showFeaturePoints = false;
+                }
             }
-
-            Pose hitPose = hitResult.getHitPose();
-            float[] hitTranslation = hitPose.getTranslation();
-            float[] hitRotation =  hitPose.getRotationQuaternion();
-
-            Pose compositePose = new Pose(hitTranslation, hitRotation);
-
-            Anchor anchor = hitResult.getTrackable().createAnchor(compositePose);
-            AnchorNode anchorNode = new AnchorNode(anchor);
-            anchorNode.setParent(arFragment.getArSceneView().getScene());
-
-            TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-            andy.setParent(anchorNode);
-            andy.setRenderable(andyRenderable);
-            andy.select();
         });
     }
 
@@ -108,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addTextureToDetectedPlanes(){
+        arFragment.getArSceneView().getPlaneRenderer().setVisible(true);
         //The Texture Sampler applies the texture repeatadly to the detected planes
         Texture.Sampler sampler =
                 Texture.Sampler.builder()
@@ -115,9 +112,9 @@ public class MainActivity extends AppCompatActivity {
                         .setWrapMode(Texture.Sampler.WrapMode.REPEAT)
                         .build();
 
-        //This sets up the texture which right now is a fractal png but can be replaced by anything you want
+        //This sets up the texture which right now is a grass png but can be replaced by anything you want
         Texture.builder()
-                .setSource(this, R.drawable.fractal)
+                .setSource(this, R.drawable.grass)
                 .setSampler(sampler)
                 .build()
                 .thenAccept(texture -> {
@@ -127,26 +124,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    //Create renderable objects, in this case just the Android logo
-    private void buildRenderableObject(){
-
-        ModelRenderable.builder()
-                .setSource(this, R.raw.andy)
-                .build()
-                .thenAccept(renderable->andyRenderable=renderable)
-                .exceptionally(
-                        throwable -> {
-                            Toast toast =
-                                    Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-                            toast.setGravity(Gravity.CENTER, 0, 0);
-                            toast.show();
-                            return null;
-                        });
-    }
-
     private void renderFeaturePoints(){
-
-        Scene scene = arFragment.getArSceneView().getScene();
+        ArSceneView sceneView = arFragment.getArSceneView();
+        sceneView.getPlaneRenderer().setVisible(false);
+        Scene scene = sceneView.getScene();
         scene.addOnUpdateListener(this::onFrame);
         pointCloudNode = new PointCloudNode(this);
         scene.addChild(pointCloudNode);
@@ -161,11 +142,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Visualize tracked points.
-        PointCloud pointCloud = frame.acquirePointCloud();
-        pointCloudNode.update(pointCloud);
+        if(showFeaturePoints) {
+            PointCloud pointCloud = frame.acquirePointCloud();
+            pointCloudNode.update(pointCloud);
+            // Application is responsible for releasing the point cloud resources after using it.
+            pointCloud.release();
 
-        // Application is responsible for releasing the point cloud resources after using it.
-        pointCloud.release();
-
+        } else {
+            arFragment.getArSceneView().getScene().removeChild(pointCloudNode);
+        }
     }
 }
