@@ -7,33 +7,19 @@ import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.arkalgud.scenemorph.ar.surfacemorpher.utilities.PointCloudNode;
-import com.google.ar.core.Anchor;
-import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
-import com.google.ar.core.HitResult;
-import com.google.ar.core.Plane;
 import com.google.ar.core.PointCloud;
-import com.google.ar.core.Pose;
-import com.google.ar.core.TrackingState;
-import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Scene;
-import com.google.ar.sceneform.SceneView;
-import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.rendering.PlaneRenderer;
 import com.google.ar.sceneform.rendering.Texture;
 import com.google.ar.sceneform.ux.ArFragment;
-import com.google.ar.sceneform.ux.TransformableNode;
-
-import java.util.Collection;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final double MIN_OPENGL_VERSION = 3.0;
 
     private ArFragment arFragment;
+    private ArSceneView arSceneView;
     private PointCloudNode pointCloudNode;
     private Boolean showSurfaceFiller;
     private Boolean showFeaturePoints;
@@ -59,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Get ARFragment that is being used
         arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        arSceneView = arFragment.getArSceneView();
 
         addTextureToDetectedPlanes();
 
@@ -104,7 +92,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addTextureToDetectedPlanes(){
-        arFragment.getArSceneView().getPlaneRenderer().setVisible(true);
+        PlaneRenderer planeRenderer = arSceneView.getPlaneRenderer();
+        planeRenderer.setVisible(true);
+
         //The Texture Sampler applies the texture repeatadly to the detected planes
         Texture.Sampler sampler =
                 Texture.Sampler.builder()
@@ -118,16 +108,14 @@ public class MainActivity extends AppCompatActivity {
                 .setSampler(sampler)
                 .build()
                 .thenAccept(texture -> {
-                    arFragment.getArSceneView().getPlaneRenderer()
-                            .getMaterial().thenAccept(material ->
+                    planeRenderer.getMaterial().thenAccept(material ->
                             material.setTexture(PlaneRenderer.MATERIAL_TEXTURE, texture));
                 });
     }
 
     private void renderFeaturePoints(){
-        ArSceneView sceneView = arFragment.getArSceneView();
-        sceneView.getPlaneRenderer().setVisible(false);
-        Scene scene = sceneView.getScene();
+        arSceneView.getPlaneRenderer().setVisible(false);
+        Scene scene = arSceneView.getScene();
         scene.addOnUpdateListener(this::onFrame);
         pointCloudNode = new PointCloudNode(this);
         scene.addChild(pointCloudNode);
@@ -135,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void onFrame(FrameTime frameTime) {
         arFragment.onUpdate(frameTime);
-        Frame frame = arFragment.getArSceneView().getArFrame();
+        Frame frame = arSceneView.getArFrame();
 
         if (frame == null) {
             return;
@@ -149,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
             pointCloud.release();
 
         } else {
-            arFragment.getArSceneView().getScene().removeChild(pointCloudNode);
+            arSceneView.getScene().removeChild(pointCloudNode);
         }
     }
 }
