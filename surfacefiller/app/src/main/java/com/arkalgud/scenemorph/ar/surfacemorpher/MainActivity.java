@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         addTextureToDetectedPlanes();
 
         Button button = findViewById(R.id.button);
-
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,10 +94,11 @@ public class MainActivity extends AppCompatActivity {
         PlaneRenderer planeRenderer = arSceneView.getPlaneRenderer();
         planeRenderer.setVisible(true);
 
-        //The Texture Sampler applies the texture repeatadly to the detected planes
+        //The Texture Sampler applies the texture repeatedly to the detected planes
         Texture.Sampler sampler =
                 Texture.Sampler.builder()
                         .setMinFilter(Texture.Sampler.MinFilter.LINEAR)
+                        .setMagFilter(Texture.Sampler.MagFilter.LINEAR)
                         .setWrapMode(Texture.Sampler.WrapMode.REPEAT)
                         .build();
 
@@ -108,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
                 .setSampler(sampler)
                 .build()
                 .thenAccept(texture -> {
-                    planeRenderer.getMaterial().thenAccept(material ->
-                            material.setTexture(PlaneRenderer.MATERIAL_TEXTURE, texture));
+                    planeRenderer.getMaterial().thenAccept(materialL ->
+                            materialL.setTexture(PlaneRenderer.MATERIAL_TEXTURE, texture));
                 });
     }
 
