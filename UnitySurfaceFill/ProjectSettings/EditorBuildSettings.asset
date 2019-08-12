@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/SurfaceFill.unity
+    guid: 5f2121bc3d138d73ca2ddb00b4653cc2
   m_configObjects: {}
