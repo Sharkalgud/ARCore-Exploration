@@ -86,8 +86,14 @@ namespace GoogleARCore.Examples.HelloAR
         /// <summary>
         /// The Unity Update() method.
         /// </summary>
+
+        public List<GameObject> points = new List<GameObject>();
+
+        public GameObject Text;
+
         public void Update()
         {
+
             _UpdateApplicationLifecycle();
 
             // If the player has not touched the screen, we are done with this update.
@@ -145,6 +151,20 @@ namespace GoogleARCore.Examples.HelloAR
 
                     // Instantiate Andy model at the hit pose.
                     var andyObject = Instantiate(prefab, hit.Pose.position, hit.Pose.rotation);
+
+                    points.Add(andyObject);
+
+                    if(points.Count >= 2){
+                      andyObject.GetComponent<LineRenderer>().positionCount = 2;
+                      andyObject.GetComponent<LineRenderer>().SetPosition(0, andyObject.transform.position);
+                      andyObject.GetComponent<LineRenderer>().SetPosition(1, points[points.Count -2].transform.position);
+
+                      var temp = Instantiate(Text, (andyObject.transform.position + points[points.Count -2].transform.position)/2, Quaternion.identity);
+                      temp.transform.LookAt(andyObject.transform.position);
+                      temp.transform.localEulerAngles = new Vector3(90, temp.transform.localEulerAngles.y + 90, 0);
+
+                      temp.GetComponent<TextMesh>().text = (Vector3.Distance(andyObject.transform.position, points[points.Count -2].transform.position) * 100).ToString("0.00");
+                    }
 
                     // Compensate for the hitPose rotation facing away from the raycast (i.e.
                     // camera).
