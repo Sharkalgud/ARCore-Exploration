@@ -3,3 +3,4 @@ This repo serves as my exploration into the abilities of Google's ARCore and how
 Projects in Repo:
 ARCore Exploration  - An app that applies a texture to surfaces that it detects. It also also visualized the feature points that have been detected by ARCore
 Unity SurfaceFill - An app that applies a textue to the surface that it detects. This was written using Unity and ARCore
+ARRuler - An app that allows you to measure things in AR. This was developed using Unity and ARCore
